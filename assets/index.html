@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ZKStudio - MyFlipPhone</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    </head>
+    <body style="margin:0 auto; overflow:hidden; background-color:white">
+        <canvas id="canvas">Sorry your device is outdated.</canvas>
+        <script>
+            var canvas = document.getElementById("canvas");
+            canvas.addEventListener("mouseup", gameMouseUp, false);
+			var gameStarted = false;
+            var screenW = window.innerWidth * 2;
+            var screenH = window.innerHeight * 2;
+            canvas.width = screenW;
+            canvas.height = screenH;
+            var ctx = canvas.getContext("2d");
+            ctx.font = "20px Arial";
+			
+			var flexImgH = screenW / (1280/720);
+			
+			//var superCorB = (screenH * 202 / 720) + (screenH - screenW / (1280/720))/2; --> salah
+			var superCorA = screenW * 717 / 1280;
+			var superCorB = flexImgH * 202 / 720 + (screenH - flexImgH)/2;
+			var superCorC = screenW * 1188 / 1280;
+			var superCorD = flexImgH * 508 / 720 + (screenH - flexImgH)/2;
+			
+			var superCorW = screenW * 80 / 1280;
+			var superCorX = flexImgH * 202 / 720 + (screenH - flexImgH)/2;
+			var superCorY = screenW * 545 / 1280;
+			var superCorZ = flexImgH * 500 / 720 + (screenH - flexImgH)/2;
+			
+			var button1 = {
+				x1 : superCorA,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 2,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 3
+			};
+			var button2 = {
+				x1 : superCorA,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 1,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 2
+			};
+			var button3 = {
+				x1 : superCorA,
+				y1 : superCorB,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 1
+			};
+			var button4 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 2,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 3
+			};
+			var button5 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 1,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 2
+			};
+			var button6 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 1,
+				y1 : superCorB,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 1
+			};
+			var button7 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 2,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 3
+			};
+			var button8 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 1,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 2
+			};
+			var button9 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 2,
+				y1 : superCorB,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 1
+			};
+			var button0 = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 1,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 4,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 2
+			};
+			var buttonStar = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y1 : superCorB + ((superCorD - superCorB) / 3) * 2,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 4,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 3
+			};
+			var buttonHash = {
+				x1 : superCorA + ((superCorC - superCorA) / 4) * 3,
+				y1 : superCorB,
+				x2 : superCorA + ((superCorC - superCorA) / 4) * 4,
+				y2 : superCorB + ((superCorD - superCorB) / 3) * 1
+			};
+            
+            //game image objects
+			var GameImageSimple = function(imagefile){
+				this.image = new Image();
+				this.image.src = imagefile;
+				this.cor1;
+				this.cor2;
+				this.cor3;
+				this.cor4;
+				/*
+				note for image scaling
+				wh 0 = default width & height
+				wh -1 = 100% of screen
+				w/h -2 = maintain aspect ratio in relateed to one of w/h
+				*/
+				this.draw = function(x, y, w, h){ 
+					var imageWidth, imageHeight, anchX, anchY;
+					anchX = this.image.width/2;
+					anchY = this.image.height/2;
+					if(w == 0) imageWidth = this.image.width;
+					else imageWidth = w;
+					if(h == 0) imageHeight = this.image.height;
+					else imageHeight = h;
+					if(w == -1){
+						imageWidth = this.image.width * (screenW/this.image.width);
+						anchX = screenW/2;
+					}
+					if(h == -1){
+						imageHeight = this.image.height * (screenH/this.image.height);
+						anchY = screenH/2;
+					}
+					if(w == -2){
+						imageWidth = (screenH/this.image.height)*this.image.width;
+						anchX = imageWidth/2;
+					}
+					if(h == -2){
+						imageHeight = (screenW/this.image.width)*this.image.height;
+						anchY = imageHeight/2;
+					}
+					ctx.drawImage(this.image, x-anchX, y-anchY, imageWidth, imageHeight); 
+					this.cor1 = x-anchX;
+					this.cor2 = y-anchY;
+					this.cor3 = x+anchX;
+					this.cor4 = y+anchY;
+				}
+			};
+			
+			var commonImage = function(imageFile){
+				this.image = new Image();
+				this.image.src = imageFile;
+			}
+			
+			var fPhone = new GameImageSimple("Images/flipphone.jpg");
+			var bBlack = new GameImageSimple("Images/buttonBlack.png");
+			var bBlue = new GameImageSimple("Images/buttonBlue.png");
+			var bGreen = new GameImageSimple("Images/buttonGreen.png");
+			var bOrange = new GameImageSimple("Images/buttonOrange.png");
+			var bPurple = new GameImageSimple("Images/buttonPurple.png");
+			var bRed = new GameImageSimple("Images/buttonRed.png");
+			var bYellow = new GameImageSimple("Images/buttonYellow.png");
+			
+			var screen1 = new commonImage("Images/1.png");
+			var screen2 = new commonImage("Images/2.png");
+			var screen3 = new commonImage("Images/3.png");
+			var screen4 = new commonImage("Images/4.png");
+			var screen5 = new commonImage("Images/5.png");
+			var screen6 = new commonImage("Images/6.png");
+			var screen7 = new commonImage("Images/7.png");
+			var screen8 = new commonImage("Images/8.png");
+			var screen9 = new commonImage("Images/9.png");
+			var screen0 = new commonImage("Images/0.png");
+			var screenStar = new commonImage("Images/star.png");
+			var screenHash = new commonImage("Images/hash.png");
+			
+			var zkLogo = new commonImage("Images/zofiakreasi.png")
+			
+			zkLogo.image.onload = function(){
+				ctx.drawImage(zkLogo.image, screenW/2 - zkLogo.image.width/2, screenH/2 - zkLogo.image.height/2);
+			}
+			setTimeout(function(){
+				ctx.clearRect(0, 0, screenW, screenH);
+				fPhone.draw(screenW/2, screenH/2, -1, -2);
+				drawColorButtons();
+				playSoundFile("flipphone");
+				gameStarted = true;
+			}, 2500);
+            
+            function gameMouseUp(e){
+                var clickedX = e.pageX;
+                var clickedY = e.pageY;
+				var clickedArea = checkClickedArea(clickedX, clickedY);
+            }
+			
+			function drawDebuggerRect(btn){
+				ctx.beginPath();
+				ctx.rect(btn.x1, btn.y1, btn.x2 - btn.x1, btn.y2 - btn.y1);
+				ctx.fillStyle = "blue";
+				ctx.fill();
+			}
+			
+			function drawColorButtons(){
+				bBlack.draw(1 * screenW/8, 50, 0, 0);
+				bBlue.draw(2 * screenW/8, 50, 0, 0);
+				bGreen.draw(3 * screenW/8, 50, 0, 0);
+				bOrange.draw(4 * screenW/8, 50, 0, 0);
+				bPurple.draw(5 * screenW/8, 50, 0, 0);
+				bRed.draw(6 * screenW/8, 50, 0, 0);
+				bYellow.draw(7 * screenW/8, 50, 0, 0);
+			}
+			
+			function checkClickedArea(x, y){
+				if(gameStarted){
+					if(isButtonClicked(x, y, button1)){
+						ctx.drawImage(screen1.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(1);
+					} 
+					if(isButtonClicked(x, y, button2)){
+						ctx.drawImage(screen2.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(2);
+					};
+					if(isButtonClicked(x, y, button3)){
+						ctx.drawImage(screen3.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(3);
+					};
+					if(isButtonClicked(x, y, button4)){
+						ctx.drawImage(screen4.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(4);
+					};
+					if(isButtonClicked(x, y, button5)){
+						ctx.drawImage(screen5.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(5);
+					};
+					if(isButtonClicked(x, y, button6)){
+						ctx.drawImage(screen6.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(6);
+					};
+					if(isButtonClicked(x, y, button7)){
+						ctx.drawImage(screen7.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(7);
+					};
+					if(isButtonClicked(x, y, button8)){
+						ctx.drawImage(screen8.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(8);
+					};
+					if(isButtonClicked(x, y, button9)){
+						ctx.drawImage(screen9.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(9);
+					};
+					if(isButtonClicked(x, y, button0)){
+						ctx.drawImage(screen0.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playSoundFile(0);
+					};
+					if(isButtonClicked(x, y, buttonStar)){
+						ctx.drawImage(screenStar.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						insia();
+					};
+					if(isButtonClicked(x, y, buttonHash)){
+						ctx.drawImage(screenHash.image, superCorW, superCorX, superCorY-superCorW, superCorZ-superCorX);
+						playAnimal();
+					};
+					//if color changed
+					if(isColorButtonClicked(x, y, bBlack)){
+						changeColor("Black");
+						playSoundFile("Black");
+					} 
+					if(isColorButtonClicked(x, y, bBlue)){
+						changeColor("Blue");
+						playSoundFile("Blue");
+					} 
+					if(isColorButtonClicked(x, y, bGreen)){
+						changeColor("Green");
+						playSoundFile("Green");
+					} 
+					if(isColorButtonClicked(x, y, bOrange)){
+						changeColor("Orange");
+						playSoundFile("Orange");
+					} 
+					if(isColorButtonClicked(x, y, bRed)){
+						changeColor("Red");
+						playSoundFile("Red");
+					} 
+					if(isColorButtonClicked(x, y, bPurple)){
+						changeColor("Purple");
+						playSoundFile("Purple");
+					} 
+					if(isColorButtonClicked(x, y, bYellow)){
+						changeColor("Yellow");
+						playSoundFile("Yellow");
+					} 
+				}
+			}
+			
+			function isButtonClicked(x, y, btn){
+				if(x > btn.x1/2 && x < btn.x2/2 && y > btn.y1/2 && y < btn.y2/2) return true;
+				else return false;
+			}
+			
+			function isColorButtonClicked(x, y, colorButton){
+				if(x > colorButton.cor1/2 && y > colorButton.cor2/2 && x < colorButton.cor3/2 && y < colorButton.cor4/2) return true;
+				else return false;
+			}
+		
+			function playAnimal(){
+				var animalSound;
+				animalSound = new Audio("Audios/sound"+Math.floor((Math.random() * 14) + 1)+".wav");
+				animalSound.play();
+			}
+			
+			function playSoundFile(file){
+				var numberSound = new Audio("Audios/"+file+".wav");
+				numberSound.play();
+			}
+			
+			function insia(){
+				var insiaSound = new Audio("Audios/insia"+Math.floor((Math.random()*2)+1)+".wav")
+				insiaSound.play();
+			}
+			
+			function changeColor(color){
+				fPhone = new GameImageSimple("Images/flipphone"+color+".jpg");
+				fPhone.image.onload = function(){
+					ctx.clearRect(0, 0, screenW, screenH);
+					fPhone.draw(screenW/2, screenH/2, -1, -2);
+					drawColorButtons();
+				}
+			}
+			
+			//resizeCanvas 
+			document.getElementById("canvas").style.width = "100%";
+        </script>
+    </body>
+</html>
